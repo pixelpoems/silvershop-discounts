@@ -394,7 +394,7 @@ class Discount extends DataObject implements PermissionProvider
             $discount = $value;
         }
 
-        $this->extend('updateDiscountValue', $discount);
+        $this->extend('updateDiscountValue', $discount, $value);
 
         return $discount;
     }
