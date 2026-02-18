@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverStripe\Dev\SapphireTest;
@@ -9,20 +11,22 @@ use SilverShop\Model\Order;
 use SilverShop\Discounts\Model\OrderDiscount;
 
 
-class MembershipDiscountConstraintTest extends SapphireTest{
+final class MembershipDiscountConstraintTest extends SapphireTest{
+
+    public $cart;
 
     protected static $fixture_file = [
         'shop.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
         $this->cart = $this->objFromFixture(Order::class, 'cart');
     }
 
-    public function testMembership()
+    public function testMembership(): void
     {
         $discount = OrderDiscount::create(
             [

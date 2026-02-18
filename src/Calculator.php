@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts;
 
+use SilverStripe\Model\List\ArrayList;
 use SilverShop\Discounts\Actions\SubtotalDiscountAction;
 use SilverShop\Discounts\Extensions\Constraints\ItemDiscountConstraint;
 use SilverShop\Discounts\Model\Discount;
@@ -17,9 +20,9 @@ class Calculator
 {
     use Injectable;
 
-    protected $order;
+    protected Order $order;
 
-    protected $discounts;
+    protected ArrayList $discounts;
 
     protected $modifier;
 
@@ -38,7 +41,7 @@ class Calculator
      *
      * @return double - discount amount
      */
-    public function calculate()
+    public function calculate(): int|float
     {
         $this->modifier = $this->order->getModifier(
             OrderDiscountModifier::class,
@@ -135,6 +138,7 @@ class Calculator
                     new Adjustment($action->perform(), $discount)
                 );
             }
+
             //select best shipping-level disount
             if ($bestadjustment = $shippingpriceinfo->getBestAdjustment()) {
                 $discount = $bestadjustment->getAdjuster();
@@ -161,7 +165,7 @@ class Calculator
      *
      * @return float
      */
-    protected function getDiscountableAmount($discount)
+    protected function getDiscountableAmount($discount): int|float
     {
         $amount = 0;
 
@@ -189,12 +193,7 @@ class Calculator
             ->sum('DiscountAmount');
     }
 
-    /**
-     * @param DataList $list
-     *
-     * @return array
-     */
-    protected function createPriceInfoList(DataList $list)
+    protected function createPriceInfoList(DataList $list): array
     {
         $output = [];
 
@@ -203,22 +202,24 @@ class Calculator
             if (!$priceInfoClass) {
                 $priceInfoClass = ItemPriceInfo::class;
             }
+
             $output[] = Injector::inst()->createWithArgs($priceInfoClass, [$item]);
         }
+
         return $output;
     }
 
-    protected function getItemDiscounts()
+    protected function getItemDiscounts(): ArrayList
     {
         return $this->discounts->filter('ForItems', true);
     }
 
-    protected function getCartDiscounts()
+    protected function getCartDiscounts(): ArrayList
     {
         return $this->discounts->filter('ForCart', true);
     }
 
-    protected function getShippingDiscounts()
+    protected function getShippingDiscounts(): ArrayList
     {
         return $this->discounts->filter('ForShipping', true);
     }
@@ -228,9 +229,8 @@ class Calculator
      *
      * @param string   $level
      * @param double   $amount
-     * @param Discount $discount
      */
-    public function logDiscountAmount($level, $amount, Discount $discount)
+    public function logDiscountAmount($level, $amount, Discount $discount): void
     {
         $this->log[] = [
             'Level' => $level,

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverShop\Model\Order;
@@ -7,11 +9,10 @@ use SilverStripe\Dev\FunctionalTest;
 use SilverShop\Page\Product;
 use SilverShop\Page\CheckoutPage;
 use SilverShop\Page\CheckoutPageController;
-use SilverStripe\Control\Session;
 use SilverShop\Discounts\Model\OrderCoupon;
 use SilverShop\Discounts\Form\CouponForm;
 
-class CouponFormTest extends FunctionalTest
+final class CouponFormTest extends FunctionalTest
 {
 
     protected static $fixture_file = [
@@ -26,7 +27,7 @@ class CouponFormTest extends FunctionalTest
         $this->objFromFixture(Product::class, 'socks')->publishRecursive();
     }
 
-    public function testCouponForm()
+    public function testCouponForm(): void
     {
         OrderCoupon::create(
             [
@@ -39,12 +40,13 @@ class CouponFormTest extends FunctionalTest
 
         $checkoutpage = $this->objFromFixture(CheckoutPage::class, 'checkout');
         $checkoutpage->publishRecursive();
-        $controller = new CheckoutPageController($checkoutpage);
+
+        $controller = CheckoutPageController::create($checkoutpage);
         $order =  $this->objFromFixture(Order::class, 'cart');
-        $form = new CouponForm($controller, CouponForm::class, $order);
+        $form = CouponForm::create($controller, CouponForm::class, $order);
         $data = ['Code' => '5B97AA9D75'];
         $form->loadDataFrom($data);
-        $this->assertTrue($form->validationResult()->isValid());
+        $this->assertTrue($form->validate()->isValid());
         $form->applyCoupon($data, $form);
 
         $coupon = $controller->getRequest()->getSession()->get('cart.couponcode');

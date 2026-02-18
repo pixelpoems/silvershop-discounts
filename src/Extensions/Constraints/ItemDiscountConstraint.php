@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
 use SilverShop\Model\OrderItem;
@@ -19,13 +21,10 @@ abstract class ItemDiscountConstraint extends DiscountConstraint
      * Checks that an item can be discounted for configured constraints.
      *
      * If any constraint check fails, the entire function returns false;
-     * @param OrderItem $item
-     * @param Discount $discount
      * @return bool
      */
     public static function match(OrderItem $item, Discount $discount)
     {
-        $singletons = [];
         $itemconstraints = ClassInfo::subclassesFor(self::class);
 
         array_shift($itemconstraints); //exclude abstract base class
@@ -49,8 +48,6 @@ abstract class ItemDiscountConstraint extends DiscountConstraint
      *
      * If there is no constraint set, then it should return true.
      *
-     * @param  OrderItem $item
-     * @param  Discount  $discount
      * @return boolean
      */
     abstract public function itemMatchesCriteria(OrderItem $item, Discount $discount);
@@ -58,7 +55,6 @@ abstract class ItemDiscountConstraint extends DiscountConstraint
     /**
      * Check if at least one item in cart matches this criteria.
      *
-     * @param Discount $discount
      *
      * @return boolean
      */

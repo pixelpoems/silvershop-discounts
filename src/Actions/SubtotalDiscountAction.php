@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Actions;
 
 use SilverShop\Discounts\Model\Discount;
@@ -31,12 +33,10 @@ class SubtotalDiscountAction extends DiscountAction
             $amount = $this->subtotal;
         }
 
-        $amount = $this->limit($amount);
-
-        return $amount;
+        return $this->limit($amount);
     }
 
-    public function isForItems()
+    public function isForItems(): bool
     {
         return false;
     }

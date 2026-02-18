@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Model;
 
+use SilverStripe\Core\Validation\ValidationResult;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Forms\TextField;
-use SilverStripe\ORM\ValidationResult;
 use SilverStripe\Security\RandomGenerator;
 
 /**
@@ -12,20 +15,20 @@ use SilverStripe\Security\RandomGenerator;
  */
 class OrderCoupon extends Discount
 {
-    private static $db = [
+    private static array $db = [
         'Code' => 'Varchar(255)'
     ];
 
-    private static $has_one = [
+    private static array $has_one = [
         'GiftVoucher' => GiftVoucherOrderItem::class
     ];
 
-    private static $searchable_fields = [
+    private static array $searchable_fields = [
         'Title',
         'Code'
     ];
 
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'Title',
         'Code',
         'DiscountNice' => 'Discount',
@@ -33,20 +36,19 @@ class OrderCoupon extends Discount
         'EndDate'
     ];
 
-    private static $singular_name = 'Coupon';
+    private static string $singular_name = 'Coupon';
 
-    private static $plural_name = 'Coupons';
+    private static string $plural_name = 'Coupons';
 
-    private static $minimum_code_length = null;
+    private static $minimum_code_length;
 
-    private static $generated_code_length = 10;
+    private static int $generated_code_length = 10;
 
-    private static $table_name = 'SilverShop_OrderCoupon';
+    private static string $table_name = 'SilverShop_OrderCoupon';
 
-    public static function get_by_code($code)
+    public static function get_by_code($code): ?DataObject
     {
-        return self::get()
-            ->filter('Code:nocase', $code)
+        return self::get()->filter(['Code:nocase' => $code])
             ->first();
     }
 
@@ -55,18 +57,16 @@ class OrderCoupon extends Discount
      *
      * @todo   depending on the length, it may be possible that all the possible
      *       codes have been generated.
-     * @param null $length
-     * @param string $prefix
      * @return string the new code
      */
-    public static function generate_code($length = null, $prefix = '')
+    public static function generate_code($length = null, string $prefix = ''): string
     {
         $length = $length ?: self::config()->generated_code_length;
         $code = null;
         $generator = Injector::inst()->create(RandomGenerator::class);
         do {
             $code = $prefix.strtoupper(substr($generator->randomToken(), 0, $length));
-        } while (self::get()->filter('Code:nocase', $code)->exists()
+        } while (self::get()->filter(['Code:nocase' => $code])->exists()
         );
 
         return $code;
@@ -92,7 +92,7 @@ class OrderCoupon extends Discount
         return $fields;
     }
 
-    public function validate()
+    public function validate(): ValidationResult
     {
         $result = parent::validate();
         $minLength = self::config()->minimum_code_length;
@@ -129,7 +129,7 @@ class OrderCoupon extends Discount
      *
      * @return $this
      */
-    public function setCode($code)
+    public function setCode($code): static
     {
         if ($code) {
             $code = trim(preg_replace('/[^0-9a-zA-Z]+/', '', $code));
@@ -139,31 +139,23 @@ class OrderCoupon extends Discount
         return $this;
     }
 
-    public function canView($member = null)
+    public function canView($member = null): bool
     {
         return true;
     }
 
-    public function canCreate($member = null, $context = [])
+    public function canCreate($member = null, $context = []): bool
     {
         return true;
     }
 
-    public function canDelete($member = null)
+    public function canDelete($member = null): bool
     {
-        if ($this->getUseCount()) {
-            return false;
-        }
-
-        return true;
+        return !$this->getUseCount();
     }
 
-    public function canEdit($member = null)
+    public function canEdit($member = null): bool
     {
-        if ($this->getUseCount() && !$this->Active) {
-            return false;
-        }
-
-        return true;
+        return !($this->getUseCount() && !$this->Active);
     }
 }

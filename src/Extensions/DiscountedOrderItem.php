@@ -1,23 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverShop\Model\OrderItem;
 use SilverShop\Discounts\Model\Discount;
 use SilverShop\Discounts\ItemPriceInfo;
 
-class DiscountedOrderItem extends DataExtension
+class DiscountedOrderItem extends Extension
 {
-    private static $db = [
+    public $owner;
+
+    private static array $db = [
         'Discount' => 'Currency'
     ];
 
-    private static $many_many = [
+    private static array $many_many = [
         'Discounts' => Discount::class
     ];
 
-    private static $many_many_extraFields = [
+    private static array $many_many_extraFields = [
         'Discounts' => [
             'DiscountAmount' => 'Currency'
         ]
@@ -30,16 +34,13 @@ class DiscountedOrderItem extends DataExtension
     {
         $productKey = OrderItem::config()->buyable_relationship . 'ID';
 
-        return $this->owner->{$productKey};
+        return $this->getOwner()->{$productKey};
     }
 
-    /**
-     * @return string
-     */
-    public function getPriceInfoClass()
+    public function getPriceInfoClass(): string
     {
         $class = ItemPriceInfo::class;
-        $this->owner->extend('updatePriceInfoClass', $class);
+        $this->getOwner()->extend('updatePriceInfoClass', $class);
         return $class;
     }
 }

@@ -1,19 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Model;
 
+use SilverStripe\Core\Validation\ValidationResult;
+use SilverStripe\Core\Validation\ValidationException;
 
 class PartialUseDiscount extends Discount
 {
-    private static $has_one = [
+    private static array $has_one = [
         'Parent' => PartialUseDiscount::class
     ];
 
-    private static $belongs_to = [
+    private static array $belongs_to = [
         'Child' => PartialUseDiscount::class
     ];
 
-    private static $defaults = [
+    private static array $defaults = [
         'Type' => 'Amount',
         'ForCart' => 1,
         'ForItems' => 0,
@@ -21,11 +25,11 @@ class PartialUseDiscount extends Discount
         'UseLimit' => 1
     ];
 
-    private static $singular_name = 'Partial Use Discount';
+    private static string $singular_name = 'Partial Use Discount';
 
-    private static $plural_name = 'Partial Use Discounts';
+    private static string $plural_name = 'Partial Use Discounts';
 
-    private static $table_name = 'SilverShop_PartialUseDiscount';
+    private static string $table_name = 'SilverShop_PartialUseDiscount';
 
     public function getCMSFields($params = null)
     {
@@ -51,14 +55,15 @@ class PartialUseDiscount extends Discount
      *
      * @param  float $used the amount of this discount that was used up
      * @return PartialUseDiscount  new 'remainder' discount
-     * @throws \SilverStripe\ORM\ValidationException
+     * @throws ValidationException
      */
-    public function createRemainder($used)
+    public function createRemainder($used): ?self
     {
         //don't recreate or do stuff with inactive discount
         if (!$this->Active || $this->Child()->exists()) {
             return null;
         }
+
         $remainder = null;
         //only create remainder if used less than amount
         $amount = $this->getAmount();
@@ -86,13 +91,13 @@ class PartialUseDiscount extends Discount
         return $remainder;
     }
 
-    public function validate()
+    public function validate(): ValidationResult
     {
         $result = parent::validate();
         //prevent vital things from changing
-        foreach (self::$defaults as $field => $value) {
+        foreach (array_keys(self::$defaults) as $field) {
             if ($this->isChanged($field)) {
-                $result->addError("$field should not be changed for partial use discounts.");
+                $result->addError($field . ' should not be changed for partial use discounts.');
             }
         }
 

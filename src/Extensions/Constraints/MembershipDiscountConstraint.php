@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
 use SilverShop\Discounts\Model\Discount;
@@ -13,19 +15,21 @@ use SilverStripe\Forms\GridField\GridFieldEditButton;
 
 class MembershipDiscountConstraint extends DiscountConstraint
 {
-    private static $many_many = [
+    public $owner;
+
+    private static array $many_many = [
         'Members' => Member::class
     ];
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
-        if ($this->owner->isInDB()) {
+        if ($this->getOwner()->isInDB()) {
             $fields->addFieldToTab(
                 'Root.Constraints.ConstraintsTabs.Membership',
                 GridField::create(
                     'Members',
                     _t(__CLASS__ . '.MEMBERS', 'Members'),
-                    $this->owner->Members(),
+                    $this->getOwner()->Members(),
                     GridFieldConfig_RelationEditor::create()
                         ->removeComponentsByType(GridFieldAddNewButton::class)
                         ->removeComponentsByType(GridFieldEditButton::class)
@@ -40,15 +44,16 @@ class MembershipDiscountConstraint extends DiscountConstraint
         if ($member = $this->getMember()) {
             $memberid = $member->ID;
         }
+
         $list = $list->leftJoin(
             'SilverShop_Discount_Members',
             '"SilverShop_Discount_Members"."SilverShop_DiscountID" = "SilverShop_Discount"."ID"'
-        )->where("(\"SilverShop_Discount_Members\".\"MemberID\" IS NULL) OR \"SilverShop_Discount_Members\".\"MemberID\" = $memberid");
+        )->where('("SilverShop_Discount_Members"."MemberID" IS NULL) OR "SilverShop_Discount_Members"."MemberID" = ' . $memberid);
 
         return $list;
     }
 
-    public function check(Discount $discount)
+    public function check(Discount $discount): bool
     {
         $members = $discount->Members();
         $member = $this->getMember();

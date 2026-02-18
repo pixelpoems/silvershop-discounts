@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverShop\Discounts\Page\GiftVoucherProduct;
 use SilverShop\Discounts\Page\GiftVoucherProductController;
 use SilverStripe\Dev\SapphireTest;
 
-class GiftVoucherTest extends SapphireTest
+final class GiftVoucherTest extends SapphireTest
 {
+    public $variable;
+
+    public $fixed10;
+
     protected static $fixture_file = [
         'GiftVouchers.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -23,9 +29,9 @@ class GiftVoucherTest extends SapphireTest
         $this->fixed10->copyVersionToStage('Stage', 'Live');
     }
 
-    public function testCusomisableVoucher()
+    public function testCusomisableVoucher(): void
     {
-        $controller =  new GiftVoucherProductController($this->variable);
+        $controller =  GiftVoucherProductController::create($this->variable);
         $form = $controller->Form();
 
         $form->loadDataFrom(
@@ -53,9 +59,9 @@ class GiftVoucherTest extends SapphireTest
         $this->assertFalse($form->validationResult()->isValid(), 'Tested unit price is zero');
     }
 
-    public function testFixedVoucher()
+    public function testFixedVoucher(): void
     {
-        $controller =  new GiftVoucherProductController($this->fixed10);
+        $controller =  GiftVoucherProductController::create($this->fixed10);
         $form = $controller->Form();
         $form->loadDataFrom(
             [
@@ -66,7 +72,7 @@ class GiftVoucherTest extends SapphireTest
         $this->assertTrue($form->validationResult()->isValid(), 'Valid voucher');
     }
 
-    public function testCreateCoupon()
+    public function testCreateCoupon(): void
     {
         $item = $this->variable->createItem(
             1,

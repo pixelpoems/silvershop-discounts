@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverStripe\Dev\SapphireTest;
@@ -7,13 +9,15 @@ use SilverShop\Tests\ShopTest;
 use SilverShop\Discounts\Model\OrderCoupon;
 use SilverShop\Model\Order;
 
-class DatetimeDiscountConstraintTest extends SapphireTest
+final class DatetimeDiscountConstraintTest extends SapphireTest
 {
+    public $cart;
+
     protected static $fixture_file = [
         'shop.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -22,7 +26,7 @@ class DatetimeDiscountConstraintTest extends SapphireTest
         $this->cart = $this->objFromFixture(Order::class, 'cart');
     }
 
-    public function testDates()
+    public function testDates(): void
     {
         $unreleasedcoupon = OrderCoupon::create(
             [
@@ -35,6 +39,7 @@ class DatetimeDiscountConstraintTest extends SapphireTest
         );
 
         $unreleasedcoupon->write();
+
         $context = ['CouponCode' => $unreleasedcoupon->Code];
         $this->assertFalse($unreleasedcoupon->validateOrder($this->cart, $context),
             'Coupon is un released (start date has not arrived)');
@@ -52,6 +57,7 @@ class DatetimeDiscountConstraintTest extends SapphireTest
         );
 
         $expiredcoupon->write();
+
         $context = ['CouponCode' => $expiredcoupon->Code];
         $this->assertFalse($expiredcoupon->validateOrder($this->cart, $context),
             'Coupon has expired (end date has passed)');

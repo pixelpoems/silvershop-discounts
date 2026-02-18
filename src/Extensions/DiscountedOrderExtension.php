@@ -1,29 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions;
 
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Model\List\ArrayList;
+use SilverStripe\Core\Extension;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridFieldConfig_RecordViewer;
-use SilverStripe\ORM\ArrayList;
 use SilverShop\Discounts\Model\Discount;
 use SilverShop\Discounts\Model\PartialUseDiscount;
 use SilverShop\Discounts\Model\Modifiers\OrderDiscountModifier;
 
-class DiscountedOrderExtension extends DataExtension
+class DiscountedOrderExtension extends Extension
 {
-    public function updateCMSFields(FieldList $fields)
+    public $owner;
+
+    public function updateCMSFields(FieldList $fields): void
     {
-        $fields->addFieldsToTab(
+        $fields->addFieldToTab(
             'Root.Discounts',
-            $grid = new GridField(
-                'Discounts',
-                Config::inst()->get(Discount::class, 'plural_name'),
-                $this->Discounts(),
-                new GridFieldConfig_RecordViewer()
-            )
+            $grid = GridField::create('Discounts', Config::inst()->get(Discount::class, 'plural_name'), $this->Discounts(), GridFieldConfig_RecordViewer::create())
         );
 
         $grid->setModelClass(Discount::class);
@@ -36,9 +35,9 @@ class DiscountedOrderExtension extends DataExtension
      */
     public function Discounts()
     {
-        $finalDiscounts = new ArrayList();
+        $finalDiscounts = ArrayList::create();
 
-        foreach ($this->owner->Modifiers() as $modifier) {
+        foreach ($this->getOwner()->Modifiers() as $modifier) {
             if ($modifier instanceof OrderDiscountModifier) {
                 foreach ($modifier->Discounts() as $discount) {
                     $finalDiscounts->push($discount);
@@ -46,7 +45,7 @@ class DiscountedOrderExtension extends DataExtension
             }
         }
 
-        foreach ($this->owner->Items() as $item) {
+        foreach ($this->getOwner()->Items() as $item) {
             foreach ($item->Discounts() as $discount) {
                 $finalDiscounts->push($discount);
             }
@@ -60,13 +59,13 @@ class DiscountedOrderExtension extends DataExtension
     /**
      * Remove any partial discounts
      */
-    public function onPlaceOrder()
+    public function onPlaceOrder(): void
     {
-        $partials = $this->owner->Discounts()->filter('ClassName', PartialUseDiscount::class);
+        $partials = $this->getOwner()->Discounts()->filter('ClassName', PartialUseDiscount::class);
 
         foreach ($partials as $discount) {
             //only bother creating a remainder discount, if savings have been made
-            if ($savings = $discount->getSavingsForOrder($this->owner)) {
+            if ($savings = $discount->getSavingsForOrder($this->getOwner())) {
                 $discount->createRemainder($savings);
                 //deactivate discounts
                 $discount->Active = false;
@@ -78,12 +77,13 @@ class DiscountedOrderExtension extends DataExtension
     /**
      * Remove discounts
      */
-    public function removeDiscounts()
+    public function removeDiscounts(): void
     {
-        foreach ($this->owner->Items() as $item) {
+        foreach ($this->getOwner()->Items() as $item) {
             $item->Discounts()->removeAll();
         }
-        foreach ($this->owner->Modifiers() as $modifier) {
+
+        foreach ($this->getOwner()->Modifiers() as $modifier) {
             if ($modifier instanceof OrderDiscountModifier) {
                 $modifier->Discounts()->removeAll();
             }

@@ -1,25 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Model;
 
+use SilverStripe\Core\Validation\ValidationException;
 use SilverShop\Model\Product\OrderItem;
 use SilverStripe\Control\Email\Email;
 
 class GiftVoucherOrderItem extends OrderItem
 {
-    private static $db = [
+    private static array $db = [
         'GiftedTo' => 'Varchar'
     ];
 
-    private static $has_many = [
+    private static array $has_many = [
         'Coupons' => OrderCoupon::class
     ];
 
-    private static $required_fields = [
+    private static array $required_fields = [
         'UnitPrice'
     ];
 
-    private static $table_name = 'SilverShop_GiftVoucherOrderItem';
+    private static string $table_name = 'SilverShop_GiftVoucherOrderItem';
 
     /**
      * Don't get unit price from product
@@ -36,14 +39,14 @@ class GiftVoucherOrderItem extends OrderItem
     /**
      * Create vouchers on order payment success event
      */
-    public function onPayment()
+    public function onPayment(): void
     {
         parent::onPayment();
 
         if ($this->Coupons()->Count() < $this->Quantity) {
             $remaining = $this->Quantity - $this->Coupons()->Count();
 
-            for ($i = 0; $i < $remaining; $i++) {
+            for ($i = 0; $i < $remaining; ++$i) {
                 if ($coupon = $this->createCoupon()) {
                     $this->sendVoucher($coupon);
                 }
@@ -55,7 +58,7 @@ class GiftVoucherOrderItem extends OrderItem
      * Create a new coupon
      *
      * @return OrderCoupon
-     * @throws \SilverStripe\ORM\ValidationException
+     * @throws ValidationException
      */
     public function createCoupon()
     {
@@ -63,15 +66,13 @@ class GiftVoucherOrderItem extends OrderItem
             return false;
         }
 
-        $coupon = new OrderCoupon(
-            [
-            'Title' => $this->Product()->Title,
-            'Type' => 'Amount',
-            'Amount' => $this->UnitPrice,
-            'UseLimit' => 1,
-            'MinOrderValue' => $this->UnitPrice //safeguard that means coupons must be used entirely
-            ]
-        );
+        $coupon = OrderCoupon::create([
+        'Title' => $this->Product()->Title,
+        'Type' => 'Amount',
+        'Amount' => $this->UnitPrice,
+        'UseLimit' => 1,
+        'MinOrderValue' => $this->UnitPrice //safeguard that means coupons must be used entirely
+        ]);
 
         $this->extend('updateCreateCupon', $coupon);
 

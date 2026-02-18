@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Checkout;
 
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Core\Validation\ValidationResult;
+use SilverStripe\Core\Validation\ValidationException;
 use SilverShop\Checkout\Component\CheckoutComponent;
 use SilverShop\Discounts\Model\OrderCoupon;
 use SilverShop\Discounts\Model\Modifiers\OrderDiscountModifier;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;
-use SilverStripe\ORM\ValidationResult;
-use SilverStripe\ORM\ValidationException;
 use SilverStripe\Control\Controller;
 use SilverShop\Model\Order;
 
@@ -16,9 +19,9 @@ class CouponCheckoutComponent extends CheckoutComponent
 {
     protected $validwhenblank = false;
 
-    public function getFormFields(Order $order)
+    public function getFormFields(Order $order): FieldList
     {
-        $fields = FieldList::create(
+        return FieldList::create(
             TextField::create(
                 'Code',
                 _t(
@@ -27,18 +30,16 @@ class CouponCheckoutComponent extends CheckoutComponent
                 )
             )
         );
-
-        return $fields;
     }
 
-    public function setValidWhenBlank($valid)
+    public function setValidWhenBlank($valid): void
     {
         $this->validwhenblank = $valid;
     }
 
-    public function validateData(Order $order, array $data)
+    public function validateData(Order $order, array $data): bool
     {
-        $result = new ValidationResult();
+        $result = ValidationResult::create();
         $code = $data['Code'];
 
         if ($this->validwhenblank && !$code) {
@@ -46,11 +47,11 @@ class CouponCheckoutComponent extends CheckoutComponent
         }
 
         // check the coupon exists, and can be used
-        if ($coupon = OrderCoupon::get_by_code($code)) {
+        if (($coupon = OrderCoupon::get_by_code($code)) instanceof DataObject) {
             if (!$coupon->validateOrder($order, ['CouponCode' => $code])) {
                 $result->addError($coupon->getMessage(), 'Code');
 
-                throw new ValidationException($result);
+                throw ValidationException::create($result);
             }
         } else {
             $result->addError(
@@ -58,21 +59,21 @@ class CouponCheckoutComponent extends CheckoutComponent
                 'Code'
             );
 
-            throw new ValidationException($result);
+            throw ValidationException::create($result);
         }
 
 
         return $result;
     }
 
-    public function getData(Order $order)
+    public function getData(Order $order): array
     {
         return [
             'Code' => Controller::curr()->getRequest()->getSession()->get('cart.couponcode')
         ];
     }
 
-    public function setData(Order $order, array $data)
+    public function setData(Order $order, array $data): Order
     {
         if ($data['Code']) {
             Controller::curr()->getRequest()->getSession()->set('cart.couponcode', strtoupper($data['Code']));

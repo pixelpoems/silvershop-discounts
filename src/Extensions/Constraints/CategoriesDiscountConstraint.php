@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
 use SilverShop\Discounts\Model\Discount;
@@ -13,19 +15,21 @@ use SilverShop\Page\ProductCategory;
 
 class CategoriesDiscountConstraint extends ItemDiscountConstraint
 {
-    private static $many_many = [
+    public $owner;
+
+    private static array $many_many = [
         'Categories' => ProductCategory::class
     ];
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
-        if ($this->owner->isInDB()) {
+        if ($this->getOwner()->isInDB()) {
             $fields->addFieldToTab(
                 'Root.Constraints.ConstraintsTabs.Product',
                 GridField::create(
                     'Categories',
                     _t(__CLASS__.'.PRODUCTCATEGORIES', 'Product categories'),
-                    $this->owner->Categories(),
+                    $this->getOwner()->Categories(),
                     GridFieldConfig_RelationEditor::create()
                         ->removeComponentsByType(GridFieldAddNewButton::class)
                         ->removeComponentsByType(GridFieldEditButton::class)
@@ -57,16 +61,18 @@ class CategoriesDiscountConstraint extends ItemDiscountConstraint
         if (empty($discountcategoryids)) {
             return true;
         }
+
         //get category ids from buyable
         $buyable = $item->Buyable();
         if (!method_exists($buyable, 'getCategoryIDs')) {
             return false;
         }
+
         $ids = array_intersect(
             $buyable->getCategoryIDs(),
             $discountcategoryids
         );
 
-        return !empty($ids);
+        return $ids !== [];
     }
 }

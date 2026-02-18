@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
 use SilverShop\Discounts\Model\Discount;
@@ -15,24 +17,26 @@ use SilverShop\Page\Product;
 
 class ProductsDiscountConstraint extends ItemDiscountConstraint
 {
-    private static $db = [
+    public $owner;
+
+    private static array $db = [
         'ExactProducts' => 'Boolean'
     ];
 
-    private static $many_many = [
+    private static array $many_many = [
         'Products' => Product::class
     ];
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
-        if ($this->owner->isInDB()) {
+        if ($this->getOwner()->isInDB()) {
             $fields->addFieldsToTab(
                 'Root.Constraints.ConstraintsTabs.Product',
                 [
                     GridField::create(
                         'Products',
                         _t(__CLASS__.'SPECIFICPRODUCTS', 'Specific products'),
-                        $this->owner->Products(),
+                        $this->getOwner()->Products(),
                         GridFieldConfig_RelationEditor::create()
                             ->removeComponentsByType(GridFieldAddNewButton::class)
                             ->removeComponentsByType(GridFieldEditButton::class)
@@ -53,7 +57,7 @@ class ProductsDiscountConstraint extends ItemDiscountConstraint
 
         if (!$products->exists()) {
             Versioned::withVersionedMode(
-                function () use ($discount, &$productIds) {
+                function () use ($discount, &$productIds): void {
                     Versioned::set_stage(Versioned::DRAFT);
 
                     $products = $discount->Products();
@@ -82,7 +86,7 @@ class ProductsDiscountConstraint extends ItemDiscountConstraint
 
         $incart = $discount->ExactProducts ?
             array_values($productIds) === array_values($intersection) :
-            count($intersection) > 0;
+            $intersection !== [];
 
         if (!$incart) {
             $this->error(
@@ -93,7 +97,7 @@ class ProductsDiscountConstraint extends ItemDiscountConstraint
         return $incart;
     }
 
-    public function itemMatchesCriteria(OrderItem $item, Discount $discount)
+    public function itemMatchesCriteria(OrderItem $item, Discount $discount): bool
     {
         $products = $discount->Products();
         $itemproduct = $item->Product(true); // true forces the current version of product to be retrieved.
@@ -102,7 +106,7 @@ class ProductsDiscountConstraint extends ItemDiscountConstraint
             foreach ($products as $product) {
                 // uses 'DiscountedProductID' since some subclasses of buyable could be used as the item product (such as
                 // a bundle) rather than the product stored.
-                if ($product->ID == $itemproduct->DiscountedProductID) {
+                if ($itemproduct && $product->ID == $itemproduct->DiscountedProductID) {
                     return true;
                 }
             }

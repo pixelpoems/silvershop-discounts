@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts;
 
 use Exception;
@@ -11,6 +13,7 @@ use Exception;
 class Adjustment
 {
     protected $value;
+
     protected $adjuster;
 
     public function __construct($val, $adjuster = null)
@@ -19,13 +22,13 @@ class Adjustment
         $this->adjuster = $adjuster;
     }
 
-    public static function better_of(Adjustment $i, Adjustment $j)
+    public static function better_of(Adjustment $i, Adjustment $j): Adjustment
     {
         return $i->compareTo($j) > 0 ? $i : $j;
     }
 
     //biggest adjustment = best
-    public function compareTo(Adjustment $i)
+    public function compareTo(Adjustment $i): int|float
     {
         return $this->getValue() - $i->getValue();
     }
@@ -40,7 +43,7 @@ class Adjustment
         return $this->adjuster;
     }
 
-    public function __tostring()
+    public function __tostring(): string
     {
         try {
             return (string) $this->value;

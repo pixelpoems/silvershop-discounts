@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverShop\Discounts\Calculator;
@@ -8,14 +10,20 @@ use SilverShop\Tests\ShopTest;
 use SilverShop\Discounts\Model\OrderCoupon;
 use SilverShop\Model\Order;
 
-class ValueDiscountConstraintTest extends SapphireTest
+final class ValueDiscountConstraintTest extends SapphireTest
 {
+
+    public $cart;
+
+    public $othercart;
+
+    public $placedorder;
 
     protected static $fixture_file = [
         'shop.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
@@ -25,7 +33,7 @@ class ValueDiscountConstraintTest extends SapphireTest
         $this->placedorder = $this->objFromFixture(Order::class, 'unpaid');
     }
 
-    public function testMinOrderValue()
+    public function testMinOrderValue(): void
     {
         $coupon = OrderCoupon::create(
             [
@@ -39,16 +47,17 @@ class ValueDiscountConstraintTest extends SapphireTest
             ]
         );
         $coupon->write();
+
         $context = ['CouponCode' => $coupon->Code];
         $this->assertFalse($coupon->validateOrder($this->cart, $context), "$8 order isn't enough");
         $this->assertTrue($coupon->validateOrder($this->othercart, $context), '$200 is enough');
         $this->assertTrue($coupon->validateOrder($this->placedorder, $context), '$500 order is enough');
 
-        $calculator = new Calculator($this->cart, $context);
+        $calculator = Calculator::create($this->cart, $context);
         $this->assertEquals(0, $calculator->calculate());
-        $calculator = new Calculator($this->othercart, $context);
+        $calculator = Calculator::create($this->othercart, $context);
         $this->assertEquals(35, $calculator->calculate());
-        $calculator = new Calculator($this->placedorder, $context);
+        $calculator = Calculator::create($this->placedorder, $context);
         $this->assertEquals(35, $calculator->calculate());
     }
 }

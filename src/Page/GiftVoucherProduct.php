@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Page;
 
+use SilverStripe\Forms\FieldList;
 use SilverShop\Discounts\Model\GiftVoucherOrderItem;
 use SilverShop\Page\Product;
 use SilverStripe\Forms\OptionsetField;
@@ -13,32 +16,28 @@ use SilverStripe\Forms\TextField;
  */
 class GiftVoucherProduct extends Product
 {
-    private static $db = [
+    private static array $db = [
         'VariableAmount' => 'Boolean',
         'MinimumAmount' => 'Currency'
     ];
 
-    private static $singular_name = 'Gift Voucher';
+    private static string $singular_name = 'Gift Voucher';
 
-    private static $plural_name = 'Gift Vouchers';
+    private static string $plural_name = 'Gift Vouchers';
 
-    private static $order_item = GiftVoucherOrderItem::class;
+    private static string $order_item = GiftVoucherOrderItem::class;
 
-    private static $table_name = 'SilverShop_GiftVoucherProduct';
+    private static string $table_name = 'SilverShop_GiftVoucherProduct';
 
-    public function getCMSFields()
+    public function getCMSFields(): FieldList
     {
         $fields = parent::getCMSFields();
         $fields->addFieldToTab(
             'Root.Pricing',
-            new OptionsetField(
-                'VariableAmount',
-                'Price',
-                [
-                0 => 'Fixed',
-                1 => 'Allow customer to choose'
-                ]
-            ),
+            OptionsetField::create('VariableAmount', 'Price', [
+            0 => 'Fixed',
+            1 => 'Allow customer to choose'
+            ]),
             'BasePrice'
         );
 
@@ -46,7 +45,7 @@ class GiftVoucherProduct extends Product
             'Root.Pricing',
             [
             //text field, because of CMS js validation issue
-            $minimumamount = new TextField('MinimumAmount', 'Minimum Amount')
+            $minimumamount = TextField::create('MinimumAmount', 'Minimum Amount')
             ]
         );
 
@@ -56,7 +55,7 @@ class GiftVoucherProduct extends Product
         return $fields;
     }
 
-    public function canPurchase($member = null, $quantity = 1)
+    public function canPurchase($member = null, $quantity = 1): bool
     {
         if (!self::config()->get('global_allow_purchase')) {
             return false;
@@ -66,10 +65,6 @@ class GiftVoucherProduct extends Product
             return false;
         }
 
-        if (!$this->isPublished()) {
-            return false;
-        }
-
-        return true;
+        return $this->isPublished();
     }
 }

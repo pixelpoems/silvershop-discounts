@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Actions;
 
 use SilverShop\Discounts\ItemPriceInfo;
@@ -8,7 +10,7 @@ use SilverShop\Discounts\Extensions\Constraints\ItemDiscountConstraint;
 
 abstract class ItemDiscountAction extends DiscountAction
 {
-    protected $infoitems;
+    protected array $infoitems;
 
     public function __construct(array $infoitems, Discount $discount)
     {
@@ -25,7 +27,6 @@ abstract class ItemDiscountAction extends DiscountAction
     /**
      * Checks if the given item qualifies for a discount.
      *
-     * @param  ItemPriceInfo $info
      * @return boolean
      */
     protected function itemQualifies(ItemPriceInfo $info)

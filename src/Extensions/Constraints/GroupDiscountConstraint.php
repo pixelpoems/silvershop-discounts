@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
 use SilverShop\Discounts\Model\Discount;
@@ -10,11 +12,11 @@ use SilverStripe\ORM\DataList;
 
 class GroupDiscountConstraint extends DiscountConstraint
 {
-    private static $has_one = [
+    private static array $has_one = [
         'Group' => Group::class
     ];
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
         $fields->addFieldToTab(
             'Root.Constraints.ConstraintsTabs.Membership',
@@ -27,7 +29,7 @@ class GroupDiscountConstraint extends DiscountConstraint
         );
     }
 
-    public function filter(DataList $list)
+    public function filter(DataList $list): DataList
     {
         $groupids = [0];
         if ($member = $this->getMember()) {
@@ -36,10 +38,10 @@ class GroupDiscountConstraint extends DiscountConstraint
                 ->toArray();
         }
 
-        return $list->filter('GroupID', $groupids);
+        return $list->filter(['GroupID' => $groupids]);
     }
 
-    public function check(Discount $discount)
+    public function check(Discount $discount): bool
     {
         $group = $discount->Group();
         $member = $this->getMember();

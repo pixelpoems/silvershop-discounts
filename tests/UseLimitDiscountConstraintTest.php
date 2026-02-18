@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverStripe\Dev\SapphireTest;
@@ -7,22 +9,24 @@ use SilverShop\Tests\ShopTest;
 use SilverShop\Discounts\Model\OrderCoupon;
 use SilverShop\Model\Order;
 
-class UseLimitDiscountConstraintTest extends SapphireTest
+final class UseLimitDiscountConstraintTest extends SapphireTest
 {
+
+    public $cart;
 
     protected static $fixture_file = [
         'shop.yml',
         'Discounts.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
         $this->cart = $this->objFromFixture(Order::class, 'cart');
     }
 
-    public function testUseLimit()
+    public function testUseLimit(): void
     {
         $coupon = $this->objFromFixture(OrderCoupon::class, 'used');
         $context = ['CouponCode' => $coupon->Code];

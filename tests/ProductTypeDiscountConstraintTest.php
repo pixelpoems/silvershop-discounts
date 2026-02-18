@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverShop\Model\Order;
@@ -11,15 +13,27 @@ use SilverShop\Discounts\Model\Discount;
 use SilverShop\Discounts\Page\GiftVoucherProduct;
 use SilverShop\Discounts\Model\OrderDiscount;
 
-class ProductTypeDiscountConstraintTest extends SapphireTest
+final class ProductTypeDiscountConstraintTest extends SapphireTest
 {
+
+    public $cart;
+
+    public $giftcart;
+
+    public $socks;
+
+    public $tshirt;
+
+    public $mp3player;
+
+    public $voucher;
 
     protected static $fixture_file = [
         'shop.yml',
         'GiftVouchers.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
@@ -34,8 +48,10 @@ class ProductTypeDiscountConstraintTest extends SapphireTest
 
         $this->socks = $this->objFromFixture(Product::class, 'socks');
         $this->socks->publishRecursive();
+
         $this->tshirt = $this->objFromFixture(Product::class, 'tshirt');
         $this->tshirt->publishRecursive();
+
         $this->mp3player = $this->objFromFixture(Product::class, 'mp3player');
         $this->mp3player->publishRecursive();
 
@@ -43,7 +59,7 @@ class ProductTypeDiscountConstraintTest extends SapphireTest
         $this->voucher->copyVersionToStage('Stage', 'Live');
     }
 
-    public function testProducts()
+    public function testProducts(): void
     {
         $discount = OrderDiscount::create(
             [

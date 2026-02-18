@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverStripe\Dev\SapphireTest;
@@ -9,14 +11,16 @@ use SilverShop\Discounts\Model\OrderDiscount;
 use SilverShop\Discounts\Model\Discount;
 use SilverStripe\Omnipay\Model\Payment;
 
-class OrderDiscountTest extends SapphireTest
+final class OrderDiscountTest extends SapphireTest
 {
+    public $cart;
+
     protected static $fixture_file = [
         'Discounts.yml',
         'shop.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
@@ -26,7 +30,7 @@ class OrderDiscountTest extends SapphireTest
     /**
      * Check that available discounts are matched to the current order.
      */
-    public function testManyMatches()
+    public function testManyMatches(): void
     {
         OrderDiscount::create(
             [
@@ -52,7 +56,7 @@ class OrderDiscountTest extends SapphireTest
         );
     }
 
-    public function testPercent()
+    public function testPercent(): void
     {
         OrderDiscount::create(
             [
@@ -69,7 +73,7 @@ class OrderDiscountTest extends SapphireTest
         );
     }
 
-    public function testAmount()
+    public function testAmount(): void
     {
         OrderDiscount::create(
             [
@@ -86,7 +90,7 @@ class OrderDiscountTest extends SapphireTest
         );
     }
 
-    public function testUseCount()
+    public function testUseCount(): void
     {
         //check that order with payment started counts as a use
         $discount = $this->objFromFixture(OrderDiscount::class, 'paymentused');

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts;
 
 /**
@@ -17,7 +19,8 @@ class PriceInfo
 
     public function __construct($price)
     {
-        $this->currentprice = $this->originalprice = $price;
+        $this->currentprice = $price;
+        $this->originalprice = $price;
     }
 
     public function getOriginalPrice()
@@ -30,14 +33,14 @@ class PriceInfo
         return $this->currentprice;
     }
 
-    public function adjustPrice(Adjustment $a)
+    public function adjustPrice(Adjustment $a): void
     {
         $this->currentprice -= $a->getValue();
         $this->setBestAdjustment($a);
         $this->adjustments[] = $a;
     }
 
-    public function getCompoundedDiscount()
+    public function getCompoundedDiscount(): int|float
     {
         return $this->originalprice - $this->currentprice;
     }
@@ -47,6 +50,7 @@ class PriceInfo
         if ($this->bestadjustment) {
             return $this->bestadjustment->getValue();
         }
+
         return 0;
     }
 

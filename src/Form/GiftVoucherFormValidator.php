@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Form;
 
-use SilverStripe\Forms\RequiredFields;
+use SilverStripe\Forms\Validation\RequiredFieldsValidator;
 
-class GiftVoucherFormValidator extends RequiredFields
+class GiftVoucherFormValidator extends RequiredFieldsValidator
 {
     public function php($data)
     {
-        $valid =  parent::php($data);
+        $valid =  null;
 
         if ($valid) {
             $controller = $this->form->getController();
@@ -27,6 +29,7 @@ class GiftVoucherFormValidator extends RequiredFields
                     );
                     return false;
                 }
+
                 if ($giftvalue <= 0) {
                     $this->validationError(
                         'UnitPrice',

@@ -1,25 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Actions;
 
 use SilverShop\Discounts\Model\Discount;
 
 abstract class DiscountAction extends Action
 {
-    /**
-     * @var Discount
-     */
-    protected $discount;
+    protected Discount $discount;
 
     /**
      * @var float used for keeping total discount within MaxAmount
      */
-    protected $remaining;
+    protected float $remaining;
 
-    /**
-     * @var bool
-     */
-    protected $limited;
+    protected bool $limited;
 
     public function __construct(Discount $discount)
     {
@@ -65,7 +61,7 @@ abstract class DiscountAction extends Action
      */
     public function reduceRemaining($amount)
     {
-        if ($this->remaining) {
+        if ($this->remaining !== 0.0) {
             $this->remaining -= $amount;
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts;
 
 use SilverShop\Model\OrderItem;
@@ -9,7 +11,7 @@ use SilverShop\Model\OrderItem;
  */
 class ItemPriceInfo extends PriceInfo
 {
-    protected $item;
+    protected OrderItem $item;
 
     protected $quantity;
 
@@ -25,7 +27,7 @@ class ItemPriceInfo extends PriceInfo
         parent::__construct($originalprice);
     }
 
-    public function getItem()
+    public function getItem(): OrderItem
     {
         return $this->item;
     }
@@ -35,18 +37,18 @@ class ItemPriceInfo extends PriceInfo
         return $this->quantity;
     }
 
-    public function getOriginalTotal()
+    public function getOriginalTotal(): int|float
     {
         return $this->originalprice * $this->quantity;
     }
 
-    public function debug()
+    public function debug(): string
     {
         $discount = $this->getBestDiscount();
         $total = $discount * $this->getQuantity();
         $val = 'item: ' .$this->getItem()->TableTitle();
         $price = $this->getOriginalPrice();
-        $val .= " price:$price discount:$discount total:$total.\n";
+        $val .= " price:{$price} discount:{$discount} total:{$total}.\n";
 
         if ($best = $this->getBestAdjustment()) {
             $val .= $this->getBestAdjustment(). ' ';
@@ -57,8 +59,7 @@ class ItemPriceInfo extends PriceInfo
 
         $val .= "\n";
         $val .= implode(',', $this->getAdjustments());
-        $val .= "\n\n";
 
-        return $val;
+        return $val . "\n\n";
     }
 }

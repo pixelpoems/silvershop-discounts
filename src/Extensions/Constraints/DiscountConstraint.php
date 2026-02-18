@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
+use SilverStripe\Core\Extension;
 use SilverShop\Discounts\Model\Discount;
-use SilverStripe\ORM\DataExtension;
 use SilverShop\Model\Order;
 use SilverStripe\ORM\DataList;
 
@@ -16,7 +18,7 @@ use SilverStripe\ORM\DataList;
  * Constraints are also instantiated on their own. See
  * ItemDiscountConstraint::match and Discount->valid
  */
-abstract class DiscountConstraint extends DataExtension
+abstract class DiscountConstraint extends Extension
 {
     protected $order;
 
@@ -60,7 +62,6 @@ abstract class DiscountConstraint extends DataExtension
      * Check if the current set order falls within
      * this constraint.
      *
-     * @param  Discount $discount
      * @return boolean
      */
     abstract public function check(Discount $discount);

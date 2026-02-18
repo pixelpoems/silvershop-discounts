@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Model;
 
 
@@ -12,5 +14,5 @@ namespace SilverShop\Discounts\Model;
 class OrderDiscount extends Discount
 {
 
-    private static $table_name = 'SilverShop_OrderDiscount';
+    private static string $table_name = 'SilverShop_OrderDiscount';
 }

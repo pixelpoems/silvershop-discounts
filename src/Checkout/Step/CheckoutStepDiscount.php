@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Checkout\Step;
 
 use SilverShop\Checkout\Step\CheckoutStep;
@@ -9,41 +11,39 @@ use SilverShop\Discounts\Checkout\CouponCheckoutComponent;
 use SilverShop\Forms\CheckoutForm;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormAction;
-use SilverShop\Discounts\Form\CouponForm;
 
 class CheckoutStepDiscount extends CheckoutStep
 {
-    private static $allowed_actions = [
+    private static array $allowed_actions = [
         'discount',
         'CouponForm',
         'setcoupon'
     ];
 
-    protected function checkoutconfig()
+    protected function checkoutconfig(): CheckoutComponentConfig
     {
-        $config = new CheckoutComponentConfig(ShoppingCart::curr(), true);
-        $config->addComponent($comp = new CouponCheckoutComponent());
+        $config = CheckoutComponentConfig::create(ShoppingCart::curr(), true);
+        $config->addComponent($comp = CouponCheckoutComponent::create());
+
         $comp->setValidWhenBlank(true);
 
         return $config;
     }
 
-    public function discount()
+    public function discount(): array
     {
         return [
             'OrderForm' => $this->CouponForm()
         ];
     }
 
-    public function CouponForm()
+    public function CouponForm(): CheckoutForm
     {
-        $form = new CheckoutForm($this->owner, 'CouponForm', $this->checkoutconfig());
+        $form = CheckoutForm::create($this->getOwner(), 'CouponForm', $this->checkoutconfig());
         $form->setActions(
-            new FieldList(
-                FormAction::create('setcoupon', _t('SilverShop\Checkout\Step\CheckoutStep.Continue', 'Continue'))
-            )
+            FieldList::create(FormAction::create('setcoupon', _t('SilverShop\Checkout\Step\CheckoutStep.Continue', 'Continue')))
         );
-        $this->owner->extend('updateCouponForm', $form);
+        $this->getOwner()->extend('updateCouponForm', $form);
 
         return $form;
     }
@@ -51,6 +51,6 @@ class CheckoutStepDiscount extends CheckoutStep
     public function setcoupon($data, $form)
     {
         $this->checkoutconfig()->setData($form->getData());
-        return $this->owner->redirect($this->NextStepLink());
+        return $this->getOwner()->redirect($this->NextStepLink());
     }
 }

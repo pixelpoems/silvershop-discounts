@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverShop\Model\Order;
@@ -9,14 +11,18 @@ use SilverShop\Discounts\Model\OrderCoupon;
 use SilverStripe\Security\Group;
 use SilverStripe\Security\Member;
 
-class GroupDiscountConstraintTest extends SapphireTest
+final class GroupDiscountConstraintTest extends SapphireTest
 {
+
+    public $cart;
+
+    public $othercart;
 
     protected static $fixture_file = [
         'shop.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
@@ -24,7 +30,7 @@ class GroupDiscountConstraintTest extends SapphireTest
         $this->othercart = $this->objFromFixture(Order::class, 'othercart');
     }
 
-    public function testMemberGroup()
+    public function testMemberGroup(): void
     {
         $coupon = OrderCoupon::create(
             [

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Extensions\Constraints;
 
 use SilverShop\Discounts\Model\Discount;
@@ -10,12 +12,12 @@ use SilverStripe\ORM\DataList;
 
 class DatetimeDiscountConstraint extends DiscountConstraint
 {
-    private static $db = [
+    private static array $db = [
         'StartDate' => 'Datetime',
         'EndDate' => 'Datetime'
     ];
 
-    public function updateCMSFields(FieldList $fields)
+    public function updateCMSFields(FieldList $fields): void
     {
         $fields->addFieldToTab(
             'Root.Constraints.ConstraintsTabs.General',
@@ -43,14 +45,14 @@ class DatetimeDiscountConstraint extends DiscountConstraint
 
         //to bad ORM filtering for NULL doesn't work...so we need to use where
         return $list->where(
-            "(\"SilverShop_Discount\".\"StartDate\" IS NULL) OR (\"SilverShop_Discount\".\"StartDate\" < '$datetime')"
+            sprintf("(\"SilverShop_Discount\".\"StartDate\" IS NULL) OR (\"SilverShop_Discount\".\"StartDate\" < '%s')", $datetime)
         )
             ->where(
-                "(\"SilverShop_Discount\".\"EndDate\" IS NULL) OR (\"SilverShop_Discount\".\"EndDate\" > '$datetime')"
+                sprintf("(\"SilverShop_Discount\".\"EndDate\" IS NULL) OR (\"SilverShop_Discount\".\"EndDate\" > '%s')", $datetime)
             );
     }
 
-    public function check(Discount $discount)
+    public function check(Discount $discount): bool
     {
         $startDate = null;
         $endDate = null;

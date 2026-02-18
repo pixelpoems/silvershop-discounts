@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Actions;
 
 use SilverShop\Discounts\Adjustment;
 
 class ItemPercentDiscount extends ItemDiscountAction
 {
-    public function perform()
+    public function perform(): void
     {
         foreach ($this->infoitems as $info) {
             if (!$this->itemQualifies($info)) {
                 continue;
             }
+
             $amount = $this->discount->getDiscountValue($info->getOriginalPrice());
             $amount *= $info->getQuantity();
             $amount = $this->limit($amount);

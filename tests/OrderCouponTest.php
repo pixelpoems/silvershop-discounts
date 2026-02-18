@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace SilverShop\Discounts\Tests;
 
 use SilverShop\Discounts\Calculator;
@@ -10,14 +12,24 @@ use SilverShop\Discounts\Model\OrderCoupon;
 use SilverShop\Page\Product;
 use SilverShop\Model\Order;
 
-class OrderCouponTest extends SapphireTest
+final class OrderCouponTest extends SapphireTest
 {
+
+    public $socks;
+
+    public $tshirt;
+
+    public $mp3player;
+
+    public $unpaid;
+
+    public $cart;
 
     protected static $fixture_file = [
         'shop.yml'
     ];
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         ShopTest::setConfiguration();
@@ -26,40 +38,42 @@ class OrderCouponTest extends SapphireTest
 
         $this->socks = $this->objFromFixture(Product::class, 'socks');
         $this->socks->publishRecursive();
+
         $this->tshirt = $this->objFromFixture(Product::class, 'tshirt');
         $this->tshirt->publishRecursive();
+
         $this->mp3player = $this->objFromFixture(Product::class, 'mp3player');
         $this->mp3player->publishRecursive();
 
         $this->unpaid = $this->objFromFixture(Order::class, 'unpaid');
         $this->cart = $this->objFromFixture(Order::class, 'cart');
-        $this->othercart = $this->objFromFixture(Order::class, 'othercart');
     }
 
-    public function testMinimumLengthCode()
+    public function testMinimumLengthCode(): void
     {
         Config::inst()->set(OrderCoupon::class, 'minimum_code_length', 8);
-        $coupon = new OrderCoupon();
+        $coupon = OrderCoupon::create();
         $coupon->Code = '1234567';
+
         $result = $coupon->validate();
         self::assertContains('INVALIDMINLENGTH', $result->getMessages());
 
-        $coupon = new OrderCoupon();
+        $coupon = OrderCoupon::create();
         $result = $coupon->validate();
         self::assertNotContains('INVALIDMINLENGTH', $result->getMessages(), 'Leaving the Code field generates a code');
 
-        $coupon = new OrderCoupon(['Code' => '12345678']);
+        $coupon = OrderCoupon::create(['Code' => '12345678']);
         $result = $coupon->validate();
         self::assertNotContains('INVALIDMINLENGTH', $result->getMessages());
 
         Config::inst()->set(OrderCoupon::class, 'minimum_code_length', null);
 
-        $coupon = new OrderCoupon(['Code' => '1']);
+        $coupon = OrderCoupon::create(['Code' => '1']);
         $result = $coupon->validate();
         self::assertNotContains('INVALIDMINLENGTH', $result->getMessages());
     }
 
-    public function testPercent()
+    public function testPercent(): void
     {
         $coupon = OrderCoupon::create(
             [
@@ -72,13 +86,14 @@ class OrderCouponTest extends SapphireTest
             ]
         );
         $coupon->write();
+
         $context = ['CouponCode' => $coupon->Code];
         $this->assertTrue($coupon->validateOrder($this->cart, $context), (string)$coupon->getMessage());
         $this->assertEquals(4, $coupon->getDiscountValue(10), '40% off value');
         $this->assertEquals(200, $this->calc($this->unpaid, $coupon), '40% off order');
     }
 
-    public function testAmount()
+    public function testAmount(): void
     {
         $coupon = OrderCoupon::create(
             [
@@ -99,7 +114,7 @@ class OrderCouponTest extends SapphireTest
         //TODO: test amount that is greater than item value
     }
 
-    public function testInactiveCoupon()
+    public function testInactiveCoupon(): void
     {
         $inactivecoupon = OrderCoupon::create(
             [
@@ -111,16 +126,17 @@ class OrderCouponTest extends SapphireTest
             ]
         );
         $inactivecoupon->write();
+
         $context = ['CouponCode' => $inactivecoupon->Code];
         $this->assertFalse($inactivecoupon->validateOrder($this->cart, $context), 'Coupon is not set to active');
     }
 
-    protected function getCalculator($order, $coupon)
+    protected function getCalculator($order, $coupon): Calculator
     {
-        return new Calculator($order, ['CouponCode' => $coupon->Code]);
+        return Calculator::create($order, ['CouponCode' => $coupon->Code]);
     }
 
-    protected function calc($order, $coupon)
+    protected function calc($order, $coupon): int|float
     {
         return $this->getCalculator($order, $coupon)->calculate();
     }
