@@ -63,7 +63,7 @@ class CouponCheckoutComponent extends CheckoutComponent
         }
 
 
-        return $result;
+        return $result->isValid();
     }
 
     public function getData(Order $order): array
@@ -80,5 +80,7 @@ class CouponCheckoutComponent extends CheckoutComponent
         }
 
         $order->getModifier(OrderDiscountModifier::class, true);
+
+        return $order;
     }
 }
