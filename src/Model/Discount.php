@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SilverShop\Discounts\Model;
 
+use SilverStripe\Forms\CompositeField;
 use SilverStripe\Model\List\ArrayList;
 use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
@@ -28,6 +29,8 @@ use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\ListboxField;
 use SilverShop\Page\Product;
 use SilverShop\Page\ProductCategory;
+use SilverStripe\ORM\Filters\WithinRangeFilter;
+use SilverStripe\ORM\Search\SearchContext;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\Security\Permission;
 use SilverStripe\ORM\Filters\GreaterThanOrEqualFilter;
@@ -241,34 +244,32 @@ class Discount extends DataObject implements PermissionProvider
 
     public function getDefaultSearchContext()
     {
-        $context = parent::getDefaultSearchContext();
+        $fields = $this->scaffoldSearchFields([
+            'restrictFields' => ['Code'],
+        ]);
 
-        $fields = $context->getFields();
+        if ($field = $fields->fieldByName('Code')) {
+            $field->setDescription('This can be a partial match.');
+        }
+
         $fields->push(CheckboxField::create('HasBeenUsed'));
 
         $fields->push(
-            ToggleCompositeField::create(
-                'StartDate',
+            FieldGroup::create(
                 'Start Date',
-                [
-                    DateField::create('q[StartDateFrom]', 'From'),
-                    DateField::create('q[StartDateTo]', 'To')
-                ]
-            )
-        );
-        $fields->push(
-            ToggleCompositeField::create(
-                'EndDate',
-                'End Date',
-                [
-                    DateField::create('q[EndDateFrom]', 'From'),
-                    DateField::create('q[EndDateTo]', 'To')
-                ]
+                DateField::create('StartDate-MinValue', 'From'),
+                DateField::create('StartDate-MaxValue', 'To')
             )
         );
 
-        // must be enabled in config, because some sites may have many products = slow load time, or memory maxes out
-        // future solution is using an ajaxified field
+        $fields->push(
+            FieldGroup::create(
+                'End Date',
+                DateField::create('EndDate-MinValue', 'From'),
+                DateField::create('EndDate-MaxValue', 'To')
+            )
+        );
+
         if (self::config()->filter_by_product) {
             $fields->push(
                 ListboxField::create('Products', 'Products', Product::get()->map()->toArray())
@@ -281,18 +282,16 @@ class Discount extends DataObject implements PermissionProvider
             );
         }
 
-        if ($field = $fields->fieldByName('Code')) {
-            $field->setDescription('This can be a partial match.');
-        }
+        $filters = [
+            'StartDate' => WithinRangeFilter::create('StartDate'),
+            'EndDate' => WithinRangeFilter::create('EndDate'),
+        ];
 
-        $filters = $context->getFilters();
-        $filters['StartDateFrom'] = GreaterThanOrEqualFilter::create('StartDate');
-        $filters['StartDateTo'] = LessThanOrEqualFilter::create('StartDate');
-        $filters['EndDateFrom'] = GreaterThanOrEqualFilter::create('EndDate');
-        $filters['EndDateTo'] = LessThanOrEqualFilter::create('EndDate');
-        $context->setFilters($filters);
-
-        return $context;
+        return SearchContext::create(
+            static::class,
+            $fields,
+            $filters,
+        );
     }
 
     /**
@@ -513,7 +512,7 @@ class Discount extends DataObject implements PermissionProvider
             $orders = $orders->leftJoin('Omnipay_Payment', '"Omnipay_Payment"."OrderID" = "SilverShop_Order"."ID"')
                 ->where(
                     '("SilverShop_Order"."Paid" IS NOT NULL) OR ' .
-                        sprintf("(\"Omnipay_Payment\".\"Created\" > '%s' AND \"Omnipay_Payment\".\"Status\" NOT IN('Refunded', 'Void'))", $timeouttime)
+                    sprintf("(\"Omnipay_Payment\".\"Created\" > '%s' AND \"Omnipay_Payment\".\"Status\" NOT IN('Refunded', 'Void'))", $timeouttime)
                 );
         } else {
             $orders = $orders->where('"SilverShop_Order"."Paid" IS NOT NULL');
