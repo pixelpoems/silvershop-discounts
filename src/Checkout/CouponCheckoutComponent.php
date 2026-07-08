@@ -43,7 +43,7 @@ class CouponCheckoutComponent extends CheckoutComponent
         $code = $data['Code'];
 
         if ($this->validwhenblank && !$code) {
-            return $result;
+            return true;
         }
 
         // check the coupon exists, and can be used
